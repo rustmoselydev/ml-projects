@@ -1,11 +1,14 @@
 
-import torch, numpy as np, pandas as pd
+import torch, pandas as pd
 from fastai.data.transforms import RandomSplitter
 from torch import *
-import tensorflow as tf
+import torch.nn.functional as F
 
-LEARNING_RATE = 1.0
+# Parameters to fiddle with
+LEARNING_RATE = 20
 EPOCHS = 30
+HIDDEN_LAYER_CONST = -0.3
+NUM_HIDDEN_COEFFS = 30
 
 # Data cleaning
 
@@ -25,7 +28,14 @@ data_frame = pd.get_dummies(data_frame, columns=['Soil_Type'], dtype="float")
 
 # Add up the rows of (independent values * coefficients)
 def calculate_predictions(coeffs, indep_tensor):
-    return (indep_tensor * coeffs).sum(axis = 1)
+    # @ syntax is shorthand for matrix products. Same as *, but more optimized in pytorch
+    l1,l2,const = coefficients
+    # Relu: applies the rectified linear unit (ReLU) function element-wise to the input tensor.
+    # This means it replaces all negative values with 0 and leaves all non-negative values unchanged.
+    result = F.relu(indep_tensor@l1)
+    # Matrix multiply relu layer1 result with the hidden layer, then add the constant
+    result = result@l2 + const
+    return result
 
 # Generate loss by comparing the prediction and the dependent, then taking an average
 def calculate_loss(coeffs, indep_tensor, dep_tensor):
@@ -33,8 +43,9 @@ def calculate_loss(coeffs, indep_tensor, dep_tensor):
 
 # set the coefficient gradients back to zero
 def zero_coefficients(coeffs):
-    coeffs.sub_(coeffs.grad * LEARNING_RATE)
-    coeffs.grad.zero_()
+    for layer in coeffs:
+        layer.sub_(layer.grad * LEARNING_RATE)
+        layer.grad.zero_()
 
 # Calculate one gradient descent step
 def one_epoch(coeffs, indep_tensor, dep_tensor): # Might need to pass these in
@@ -45,7 +56,14 @@ def one_epoch(coeffs, indep_tensor, dep_tensor): # Might need to pass these in
 
 # This builds a Tensor of random numbers and calculates gradients on these coefficients
 def initialize_coeffs(n_coeffs):
-    return (torch.rand(n_coeffs)-0.5).requires_grad_()
+    # coeffs x hidden coeffs sized matrix for layer 1
+    layer1 = (torch.rand(n_coeffs, NUM_HIDDEN_COEFFS)-0.5)/NUM_HIDDEN_COEFFS
+    # layer 2 is hidden x 1 matrix, with a const
+    layer2 = torch.rand(NUM_HIDDEN_COEFFS, 1) + HIDDEN_LAYER_CONST
+    const = torch.rand(1)[0]
+    print("const")
+    print(const)
+    return layer1.requires_grad_(),layer2.requires_grad_(),const.requires_grad_()
 
 # Training function
 def train_model(coeffs, indep_tensor, dep_tensor):
@@ -85,8 +103,12 @@ train_split,validation_split=RandomSplitter()(data_frame)
 train_independent, validation_independent = tensor_independent[train_split], tensor_independent[validation_split]
 train_dependent, validation_dependent = tensor_dependent[train_split], tensor_dependent[validation_split]
 
+# Turn our dependent vectors into column vectors for neural net
+train_dependent = train_dependent[:,None]
+validation_dependent = validation_dependent[:,None]
+
 # Train the model on the training split
 train_model(coefficients, train_independent, train_dependent)
 # Test for accuracy with the validation split
 accuracy = calculate_accuracy(coefficients, validation_independent, validation_dependent)
-print(f"Accuracy: {str(accuracy.item() * 100)}")
+print(f"Accuracy: {str(accuracy.item() * 100)}%")

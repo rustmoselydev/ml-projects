@@ -10,6 +10,8 @@ print(len(files))
 def get_category(filename):
     return filename.parent.name.replace("_", " ")
 
+# Data not in repository because of file size of 2000+ images
+# Trained on Fender, Gibson, and Ibanez electric guitars
 dataloader = ImageDataLoaders.from_path_func("./guitars", files, get_category, item_tfms=Resize(800, method="squish"), bs=64, batch_tfms=aug_transforms())
 dataloader.device = torch.device("mps")
 dataloader.show_batch()
