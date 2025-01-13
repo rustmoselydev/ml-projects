@@ -1,27 +1,25 @@
 
-import torch, pandas as pd
+# This from-scratch neural net needs optimization- can only get up to about 80% accuracy
+
+import torch, pandas as pd, numpy as np
 from fastai.data.transforms import RandomSplitter
 from torch import *
 import torch.nn.functional as F
 
 # Parameters to fiddle with
-LEARNING_RATE = 20
-EPOCHS = 30
-HIDDEN_LAYER_CONST = -0.3
-NUM_HIDDEN_COEFFS = 30
+LEARNING_RATE = 0.01
+EPOCHS = 40000
+HIDDEN_LAYER_CONST = -0.5
+NUM_HIDDEN_COEFFS = 1
 
 # Data cleaning
 
-csv_path = './data/bangladesh_divisions_dataset.csv'
+csv_path = './data/insurance.csv'
 
 data_frame = pd.read_csv(csv_path)
-# A lot of this data isn't relevant to us
-cols_to_drop = ['Location', 'Land_Use_Type', 'Crop_Suitability', 'Season', 'Satellite_Observation_Date', 'Remarks']
-for col in cols_to_drop:
-    data_frame.drop(col, axis=1, inplace=True)
 
 # Separate out columns that are categories
-data_frame = pd.get_dummies(data_frame, columns=['Soil_Type'], dtype="float")
+data_frame = pd.get_dummies(data_frame, columns=['region', 'sex', 'smoker'], dtype="float")
 
 
 # Machine Learning
@@ -29,13 +27,13 @@ data_frame = pd.get_dummies(data_frame, columns=['Soil_Type'], dtype="float")
 # Add up the rows of (independent values * coefficients)
 def calculate_predictions(coeffs, indep_tensor):
     # @ syntax is shorthand for matrix products. Same as *, but more optimized in pytorch
-    l1,l2,const = coefficients
+    l1,l2,const = coeffs
     # Relu: applies the rectified linear unit (ReLU) function element-wise to the input tensor.
     # This means it replaces all negative values with 0 and leaves all non-negative values unchanged.
     result = F.relu(indep_tensor@l1)
     # Matrix multiply relu layer1 result with the hidden layer, then add the constant
     result = result@l2 + const
-    return result
+    return F.relu(result)
 
 # Generate loss by comparing the prediction and the dependent, then taking an average
 def calculate_loss(coeffs, indep_tensor, dep_tensor):
@@ -48,7 +46,7 @@ def zero_coefficients(coeffs):
         layer.grad.zero_()
 
 # Calculate one gradient descent step
-def one_epoch(coeffs, indep_tensor, dep_tensor): # Might need to pass these in
+def one_epoch(coeffs, indep_tensor, dep_tensor):
     loss = calculate_loss(coeffs, indep_tensor, dep_tensor)
     loss.backward()
     with torch.no_grad(): zero_coefficients(coeffs)
@@ -57,12 +55,10 @@ def one_epoch(coeffs, indep_tensor, dep_tensor): # Might need to pass these in
 # This builds a Tensor of random numbers and calculates gradients on these coefficients
 def initialize_coeffs(n_coeffs):
     # coeffs x hidden coeffs sized matrix for layer 1
-    layer1 = (torch.rand(n_coeffs, NUM_HIDDEN_COEFFS)-0.5)/NUM_HIDDEN_COEFFS
+    layer1 = torch.rand(n_coeffs, NUM_HIDDEN_COEFFS) / NUM_HIDDEN_COEFFS
     # layer 2 is hidden x 1 matrix, with a const
     layer2 = torch.rand(NUM_HIDDEN_COEFFS, 1) + HIDDEN_LAYER_CONST
     const = torch.rand(1)[0]
-    print("const")
-    print(const)
     return layer1.requires_grad_(),layer2.requires_grad_(),const.requires_grad_()
 
 # Training function
@@ -76,16 +72,16 @@ def train_model(coeffs, indep_tensor, dep_tensor):
 def calculate_accuracy(coeffs, val_indep, val_dep):
     # Accuracy within +/- 5% fertility index for now
     pred = calculate_predictions(coeffs, val_indep)
-    above_threshold = (pred > val_dep - 5).bool()
-    below_threshold = (pred < val_dep + 5).bool()
+    above_threshold = (pred > val_dep - 50).bool()
+    below_threshold = (pred < val_dep + 50).bool()
     mult = above_threshold * below_threshold
     return mult.float().mean()
 
 # Variable we want to predict/measure
-tensor_dependent = tensor(data_frame["Fertility_Index"])
+tensor_dependent = tensor(data_frame["charges"], dtype=torch.float)
 
 # Variables we want to check for correlation with the dependent variable
-independent_cols = ['Average_Rainfall(mm)', 'Temperature(°C)', 'Soil_Type_Clay', 'Soil_Type_Loamy', 'Soil_Type_Peaty', 'Soil_Type_Sandy', 'Soil_Type_Silt']
+independent_cols = ['age', 'sex_male', 'sex_female', 'bmi', 'children', 'smoker_yes', 'smoker_no', 'region_southeast', 'region_southwest', 'region_northeast', 'region_northwest']
 tensor_independent = tensor(data_frame[independent_cols].values, dtype=torch.float)
 
 # Map all floats in independent cols to 0-1 based on their maximum- a percentage of maximum if you'd like
