@@ -13,6 +13,7 @@ data_frame['selling_price'].astype(float)
 data_frame['km_driven'].astype(float)
 data_frame['year'].astype(float)
 max = data_frame['selling_price'].max()
+print(max)
 
 data_frame['selling_price_norm'] = data_frame['selling_price'] / max
 
@@ -30,7 +31,7 @@ to = TabularPandas(data_frame, procs=[Categorify, FillMissing,Normalize],
 
 dataloader = to.dataloaders(bs=256)
 
-dataloader.device = torch.device("mps")
+# dataloader.device = torch.device("mps")
 
 
 
@@ -38,9 +39,8 @@ dataloader.device = torch.device("mps")
 # Layers defines the number of hidden layers
 learn = tabular_learner(dataloader, metrics=[rmse], layers=[1000, 500])
 
-
 # First arg is no of epochs
-learn.fit(30, lr=0.1)
+learn.fit(1000, lr=0.001)
 test_feature = data_frame.iloc[:2]
 test_dl = learn.dls.test_dl(test_feature)
 predictions = learn.get_preds(dl=test_dl)
