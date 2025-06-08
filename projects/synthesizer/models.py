@@ -1,6 +1,7 @@
 import torch.nn as nn
 import math
 import torch
+import torch.nn.functional as F
 
 # Conditional normalization of our data
 # Makes data harder for the model to ignore, though this isn't strictly necessary in diffusion
@@ -9,9 +10,9 @@ class ConditionalNorm2d(nn.Module):
         super(ConditionalNorm2d, self).__init__()
         self.channels = channels
         if norm_type == "bn":
-            self.norm = nn.BatchNorm2d(channels, affine=False, eps=1e-4)
+            self.norm = nn.BatchNorm2d(channels, affine=False, eps=1e-3)
         elif norm_type == "gn":
-            self.norm = nn.GroupNorm(8, channels, affine=False, eps=1e-4)
+            self.norm = nn.GroupNorm(8, channels, affine=False, eps=1e-3)
         else:
             raise ValueError("Normalisation type not recognised.")
         # Remember: num_features is the static index-keeping parameter from our UNet
@@ -115,7 +116,7 @@ class ResBlock(nn.Module):
 # Make noisier
 class Encoder(nn.Module):
 
-    def __init__(self, channels, ch=64, blocks=(1, 2, 4, 8), num_features=128):
+    def __init__(self, channels, ch=16, blocks=(1, 2, 4, 8), num_features=128):
         super(Encoder, self).__init__()
         self.conv_in = nn.Conv2d(channels, blocks[0] * ch, 3, 1, 1)
 
@@ -129,7 +130,7 @@ class Encoder(nn.Module):
 
         self.block_out = ResBlock(w_out * ch, w_out * ch, num_features=num_features)
 
-        self.act_fnc = nn.ELU()
+        # self.act_fnc = nn.ELU()
 
     def forward(self, x, index_features):
         x = self.conv_in(x)
@@ -145,7 +146,7 @@ class Encoder(nn.Module):
 # Make less noisy
 class Decoder(nn.Module):
 
-    def __init__(self, channels, ch=64, blocks=(1, 2, 4, 8), num_features=128):
+    def __init__(self, channels, ch=16, blocks=(1, 2, 4, 8), num_features=128):
         super(Decoder, self).__init__()
         
         widths_out = list(blocks)[::-1]
@@ -158,18 +159,20 @@ class Decoder(nn.Module):
         for w_in, w_out in zip(widths_in, widths_out):
             self.layer_blocks.append(ResUp(w_in * ch * 2, w_out * ch, num_features=num_features))
 
-        self.conv_out = nn.Conv2d(blocks[0] * ch * 2, channels, 3, 1, 1)
-        self.act_fnc = nn.ELU()
+        self.conv_out = nn.Conv2d(blocks[0] * ch * 2, 1, 3, 1, 1)
+        # self.act_fnc = nn.ELU()
 
     def forward(self, x_in, skip_list, index_features):
         x = self.block_in(x_in, index_features)
         
         for block in self.layer_blocks:
             skip = skip_list.pop()
+            x = F.interpolate(x, size=skip.shape[2:], mode='bilinear', align_corners=True)
             x = torch.cat((x, skip), 1)
             x = block(x, index_features)
             
         skip = skip_list.pop()
+        x = F.interpolate(x, size=skip.shape[2:], mode='bilinear', align_corners=True)
         x = torch.cat((x, skip), 1)
         return self.conv_out(x)
 
@@ -190,7 +193,7 @@ class SinusoidalPosEmb(nn.Module):
 
 # Unet is a U shaped architecture of encoding/decoding
 class Unet(nn.Module):
-    def __init__(self, channel_in=4, ch=64, blocks=(1, 2, 4, 8), timesteps=20, num_features=128, num_labels=10):
+    def __init__(self, channel_in=2, ch=16, blocks=(1, 2, 4, 8), timesteps=20, num_features=128, num_labels=10):
         super(Unet, self).__init__()
         # Timestep embedding        
         self.time_mlp = nn.Sequential(
@@ -217,7 +220,7 @@ class Unet(nn.Module):
         label_features = self.label_mlp(labels) 
 
         # Combine time and label embeddings
-        cond_features = index_features + label_features  # Simple fusion
+        cond_features = (index_features / index_features.norm()) + (label_features / label_features.norm())
         
         bottleneck, skip_list = self.encoder(x, cond_features)
         recon_img = self.decoder(bottleneck, skip_list, cond_features)

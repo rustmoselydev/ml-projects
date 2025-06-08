@@ -18,19 +18,14 @@ with os.scandir(directory_path) as entries:
             y, sr = librosa.load(f"{directory_path}/{entry.name}")
 
             # Compute the spectrogram
-            D = librosa.stft(y)
+            abs_spectrogram = librosa.stft(y, n_fft=2048, hop_length=512)
 
             # Convert to decibels
-            D_db = librosa.amplitude_to_db(abs(D), ref=np.max)
+            abs_spectrogram = librosa.amplitude_to_db(np.abs(abs_spectrogram), ref=np.max)
 
             # Save the file
-            fig = plt.Figure()
-            canvas = FigureCanvas(fig)
-            ax = fig.add_subplot(111)
-            p = librosa.display.specshow(librosa.amplitude_to_db(D_db, ref=np.max), ax=ax, y_axis='log', x_axis='time')
-            fig.savefig(f"./specs/{entry.name}.png")
-            fig.clear()
-            print(f"saved f{entry.name}.png")
+            np.save(f"./data/specs/{entry.name}.npy", abs_spectrogram)
+            print(f"saved f{entry.name}.npy")
             # If you want to listen to the sound it produces, run this code
             # Note: it doesn't invert perfectly, and for me, that's fun audio
             # spec = librosa.feature.melspectrogram(y=y,sr=sr)
