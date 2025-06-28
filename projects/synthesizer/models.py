@@ -1,3 +1,7 @@
+# An older style UNet model designed to replicate audio spectrograms based on a multi-hot vector
+# The spectrograms are huge, and with my home hardware training this is not super feasible.
+# It's also much less efficient than an LDM. I may revisit this at a later date
+
 import torch.nn as nn
 import math
 import torch

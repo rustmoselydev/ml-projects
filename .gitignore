@@ -9,4 +9,7 @@ next-env.d.ts
 **/__pycache__
 projects/synthesizer/data
 **/*.pth
+**/*.pt
 **/audio
+**/raw-data
+**/training-data
