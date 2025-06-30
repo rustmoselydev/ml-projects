@@ -74,6 +74,6 @@ def generate_image(prompt, save_path=None):
 
 # --- Example usage ---
 if __name__ == "__main__":
-    prompt = "This character appears to be wearing a white gown with light blue accents and a gold belt or decoration. The character has long yellow hair and a headband with a red jewel. The overall colors are white, blue, yellow, and a touch of red."
+    prompt = "The character has striking blue hair styled in a way that complements their gray skin. They are dressed in a pink garment, possibly a robe or tunic. They hold fiery elements in both hands, casting a warm glow around them. Their appearance suggests they might belong to a mystical or magical class, such as a sorcerer or mage."
     img = generate_image(prompt, save_path="sample_output.png")
     img.show()

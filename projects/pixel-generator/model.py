@@ -1,3 +1,7 @@
+# ---------------------------
+# A Latent Diffusion Model for generating 32x32 pixel art characters from prompts
+# ---------------------------
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -165,7 +169,6 @@ class UNet(nn.Module):
         self.down3 = ResidualBlock(base_channels * 2, base_channels * 4, time_embed_dim)
         self.downsample2 = Downsample(base_channels * 4)
 
-        # Bottleneck
         self.mid1 = ResidualBlock(base_channels * 4, base_channels * 4, time_embed_dim)
         self.mid_attn = AttentionBlock(base_channels * 4)
         self.mid2 = ResidualBlock(base_channels * 4, base_channels * 4, time_embed_dim)
@@ -247,6 +250,7 @@ class LatentDiffusionModel(nn.Module):
         # Cond/uncond embeddings
         cond = self.text_embedder(text)
 
+        # Guidance dropout to force the model to learn from the prompt
         if self.training and torch.rand(1).item() < guidance_dropout:
             cond = torch.zeros_like(cond)
         uncond = torch.zeros_like(cond)
@@ -265,12 +269,6 @@ class LatentDiffusionModel(nn.Module):
             return loss, recon
 
         return loss
-
-        # Test denoising target instead of noise prediction
-        # denoised_latents = self.noise_scheduler.remove_noise(noised_latents, pred_noise, t)
-        # loss = F.mse_loss(denoised_latents, latents)
-        # print("pred noise, shouldnt be flat or decaying")
-        # print(pred_noise.abs().mean())
 
 # ---------------------------
 # Noise Scheduler (Beta Schedule)

@@ -19,7 +19,7 @@ def encode_image(image_path):
 
 for filename in sorted(os.listdir(image_folder)):
     if filename.lower().endswith(('.png')):
-            if int(filename.split(".")[0]) > 1112:
+            if int(filename.split(".")[0]) > -1:
                 image_path = os.path.join(image_folder, filename)
                 image = encode_image(image_path)
                 try:
@@ -29,7 +29,7 @@ for filename in sorted(os.listdir(image_folder)):
                             {
                                 "role": "user",
                                 "content": [
-                                    { "type": "text", "text": "You are looking at a 32x32 pixel art character. Describe its gender, outfit, age, skin color, hair, and colors as best you can. If the character seems to have an obviously specific job like king or soldier, mention that. If they are not human, describe what creature they resemble. If they don't meet a specific criteria mentioned in this prompt, do not mention that criteria (e.g. if they aren't a king, don't say so explicitly)" },
+                                    { "type": "text", "text": "You are looking at a fantasy style pixel art character from a video game. Describe the following attributes about this character: hair color, hair style, skin color, all discernable clothing or armor (including the color of each piece), any discernable accessories or items in hand, gender, and their possible fantasy class or job (which can also just be something like being a commoner, townsperson, merchant, or other adjectives for an average person). Do not mention that this is a fantasy pixel art character. The format should be a series of sentences- no bullet lists or any other formatting. IMPORTANT: If you cannot discern a particular trait, just don't mention it." },
                                     {
                                         "type": "image_url",
                                         "image_url": {
@@ -52,8 +52,8 @@ for filename in sorted(os.listdir(image_folder)):
 
 # Save to CSV
 df = pd.DataFrame(output_data)
-csv = pd.read_csv("generated_captions.csv")
-combined = pd.concat([df, csv], ignore_index=True)
+# csv = pd.read_csv("generated_captions.csv")
+# combined = pd.concat([df, csv], ignore_index=True)
 df.to_csv("generated_captions.csv", index=False)
 print("CSV saved!")
 

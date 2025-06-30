@@ -11,14 +11,14 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException, ElementClickInterceptedException, NoSuchElementException
 
 # --- Configuration ---
-download_dir = os.path.abspath("../../raw-data/pixel-art")
+download_dir = os.path.abspath("../../raw-data/pixel-art/characters/2")
 
-url = "https://spritedatabase.net/system/snes"
+url = "https://spritedatabase.net/system/genesis"
 driver_wait_time = 15
 
 # If it crashes out, set it to where it crashed - 1
 # To start at the beginning, set it to 0
-resume_iteration = 100
+resume_iteration = 0
 
 # --- Chrome options for headless download ---
 chrome_options = Options()

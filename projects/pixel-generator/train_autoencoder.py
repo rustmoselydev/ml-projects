@@ -1,3 +1,7 @@
+# ---------------------------
+# The autoencoder must be trained to reconstruct images from the latent space before the model will work
+# ---------------------------
+
 import os
 import torch
 from torch import nn, optim
