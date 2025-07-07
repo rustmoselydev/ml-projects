@@ -1,0 +1,1 @@
+cat embeddings/metadata_chunks/*.jsonl > embeddings/full_metadata.jsonl

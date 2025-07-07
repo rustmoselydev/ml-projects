@@ -13,3 +13,6 @@ projects/synthesizer/data
 **/audio
 **/raw-data
 **/training-data
+**/archive
+**/chunks
+**/embeddings
