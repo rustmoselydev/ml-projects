@@ -1,1 +1,1 @@
-cat embeddings/metadata_chunks/*.jsonl > embeddings/full_metadata.jsonl
+cat embeddings/metadata_chunks/*.jsonl > embeddings/wiki_metadata.jsonl

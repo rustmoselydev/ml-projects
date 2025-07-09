@@ -16,3 +16,4 @@ projects/synthesizer/data
 **/archive
 **/chunks
 **/embeddings
+**/*.gguf
