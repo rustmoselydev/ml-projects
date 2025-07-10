@@ -4,7 +4,7 @@ import numpy as np
 import faiss
 from sentence_transformers import SentenceTransformer
 
-# --- Config ---
+# Config
 chunk_dir = "./chunks"
 index_path = "./embeddings/wiki_ivf.index"
 metadata_dir = "./embeddings/metadata_chunks"
@@ -12,12 +12,12 @@ processed_log_path = "./embeddings/processed_files.txt"
 batch_size = 500
 nlist = 256  # Number of clusters for IVF
 
-# --- Setup ---
+# Setup
 os.makedirs(metadata_dir, exist_ok=True)
 model = SentenceTransformer('all-MiniLM-L6-v2', device="mps")
 dimension = model.get_sentence_embedding_dimension()
 
-# --- Initialize Index ---
+# Initialize Index
 if os.path.exists(index_path):
     index = faiss.read_index(index_path, faiss.IO_FLAG_MMAP)
     print("Loaded existing FAISS IVF index.")
@@ -27,14 +27,14 @@ else:
     index.nprobe = 10
     print("Created new FAISS IVF index (not yet trained).")
 
-# --- Load Processed Files ---
+# Load Processed Files
 if os.path.exists(processed_log_path):
     with open(processed_log_path, "r") as f:
         processed_files = set(f.read().splitlines())
 else:
     processed_files = set()
 
-# --- Training if needed ---
+# Training if needed
 if not index.is_trained:
     print("Collecting training data for IVF...")
     training_samples = []
@@ -50,7 +50,7 @@ if not index.is_trained:
     index.train(training_array)
     print("Index trained.")
 
-# --- Indexing Loop ---
+# Indexing Loop
 chunk_files = sorted(os.listdir(chunk_dir))
 for file_name in chunk_files:
     if file_name in processed_files:
