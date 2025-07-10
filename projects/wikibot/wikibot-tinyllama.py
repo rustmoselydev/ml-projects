@@ -69,7 +69,13 @@ Question: {query} [/INST]
 """
 
 # CLI loop
-print("Offline Wikipedia Chatbot (Ctrl+C to quit)")
+print("""
+      =================================
+      #------------WIKIBOT------------#
+      =================================
+
+      (Ctrl+C to quit)
+      """)
 while True:
     try:
         user_query = input("You: ")
