@@ -1,5 +1,4 @@
 # from fastapi import FastAPI, Request
-from llama_cpp import Llama
 import json
 import faiss
 import numpy as np
