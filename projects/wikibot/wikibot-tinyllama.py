@@ -57,14 +57,14 @@ def generate_answer(query):
 
 # Prompt Template
 def build_prompt(query, context):
-    return f"""<s>[INST] <<SYS>>
+    return f"""<|system|>
 You are a helpful assistant. Use the following context to answer the user's question.
-<</SYS>>
 
 Context:
-{context}
-
-Question: {query} [/INST]
+{context}</s>
+<|user|>
+Question: {query} </s>
+<|assistant|>
 """
 
 # CLI loop
