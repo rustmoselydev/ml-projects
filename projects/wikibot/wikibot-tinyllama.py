@@ -1,4 +1,5 @@
-# from fastapi import FastAPI, Request
+# Copyright 2025 Brian Mosely. This is NOT open source software and is presented for educational purposes.
+
 import json
 import faiss
 import numpy as np

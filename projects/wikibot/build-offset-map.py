@@ -1,3 +1,5 @@
+# Copyright 2025 Brian Mosely. This is NOT open source software and is presented for educational purposes.
+
 # Run this ONCE after merging wiki_metadata.jsonl
 def build_metadata_offset_index(metadata_path, index_path):
     with open(metadata_path, "r") as meta_file, open(index_path, "w") as index_file:

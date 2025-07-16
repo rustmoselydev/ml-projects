@@ -1,3 +1,5 @@
+Copyright 2025 Brian Mosely. This is NOT open source software and is presented for educational purposes.
+
 To make use of this model for offline RAG on any text content:
 
 - Chunk the data with parquet-chunks.py. If your data is in a different format, you'll need to adjust. This script originally works from letter-separated parquet files that are a Wikipedia dump and puts them into letter-separated .jsonl files

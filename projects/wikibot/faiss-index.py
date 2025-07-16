@@ -1,3 +1,4 @@
+# Copyright 2025 Brian Mosely. This is NOT open source software and is presented for educational purposes.
 # Create a faiss index and metadata to use as embeddings for the chatbot
 import json, os
 import numpy as np
