@@ -3,7 +3,8 @@ import soundfile as sf
 import asyncio
 import os
 from dotenv import load_dotenv
-import numpy as np
+# Make sure to set your .env variables!
+
 load_dotenv()
 
 prompt = "A soft calming chord that glistens over time"
