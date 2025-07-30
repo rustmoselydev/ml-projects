@@ -17,3 +17,4 @@ projects/synthesizer/data
 **/chunks
 **/embeddings
 **/*.gguf
+**/*.wav

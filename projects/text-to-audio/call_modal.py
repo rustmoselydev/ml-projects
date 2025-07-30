@@ -1,3 +1,5 @@
+# This could be turned into a REST endpoint or a CLI app if you wanted
+
 import httpx
 import soundfile as sf
 import asyncio
