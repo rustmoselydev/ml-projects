@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-prompt = "A soft calming chord that glistens over time"
+prompt = "A drumset performing a breakbeat at 140 bpm"
 async def do_inference():
     headers = {
     "Authorization": f"Bearer {os.environ["INFERENCE_SECRET"]}",

@@ -47,6 +47,9 @@ async def synthesize_audio_from_text(request: Request):
     
     body = await request.json()
     prompt = body.get("prompt")
+    negative_prompt = body.get("negative_prompt")
+    length = body.get("length")
+    length_float = float(length)
     # print("prompt")
     # print(prompt)
     pipe = StableAudioPipeline.from_pretrained("stabilityai/stable-audio-open-1.0", torch_dtype=torch.float16, use_auth_token=os.environ["TOKEN"]
@@ -55,7 +58,8 @@ async def synthesize_audio_from_text(request: Request):
     pipe = pipe.to("cuda")
 
     # probably worth tweaking
-    negative_prompt = "Low quality."
+    if len(negative_prompt) == 0:
+        negative_prompt = "Low quality."
 
     # set the seed for generator
     generator = torch.Generator("cuda").manual_seed(0)
@@ -64,10 +68,10 @@ async def synthesize_audio_from_text(request: Request):
     audio = pipe(
         prompt,
         negative_prompt=negative_prompt,
-        # Can tweak this
+        # Can tweak this- more inference steps = better output, more compute time
         num_inference_steps=30,
         # Audio length
-        audio_end_in_s=10.0,
+        audio_end_in_s=length_float,
         num_waveforms_per_prompt=1,
         generator=generator,
     ).audios
