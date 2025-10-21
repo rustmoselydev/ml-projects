@@ -1,5 +1,5 @@
 {
-  "name": "wiki-mpc-server",
+  "name": "wiki-mcp-server",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
