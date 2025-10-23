@@ -43,8 +43,8 @@ export async function searchWikipedia(searchTerm: string) {
     // Converts the HTML into human readable text
     const compileFunc = compile();
     const finalTexts = bodies.map(compileFunc);
-    // This might not be necessary, but it does provide separation between articles
-    return finalTexts.join("/////!!!!!").slice(0, 19999);
+    // Limit number of tokens- Claude has a 20k limit
+    return finalTexts.join("/////!!!!!").split(" ").slice(0, 19000).join(" ");
   } catch (error) {
     console.error("Error making wikipedia request:", error);
     return null;
