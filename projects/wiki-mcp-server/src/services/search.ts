@@ -44,7 +44,7 @@ export async function searchWikipedia(searchTerm: string) {
     const compileFunc = compile();
     const finalTexts = bodies.map(compileFunc);
     // This might not be necessary, but it does provide separation between articles
-    return finalTexts.join("/////!!!!!");
+    return finalTexts.join("/////!!!!!").slice(0, 19999);
   } catch (error) {
     console.error("Error making wikipedia request:", error);
     return null;
